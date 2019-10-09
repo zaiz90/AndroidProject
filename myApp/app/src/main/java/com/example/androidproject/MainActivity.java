@@ -4,7 +4,10 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.text.Layout;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -21,7 +24,7 @@ public class MainActivity extends AppCompatActivity {
 
     private FirebaseAuth mAuth;
 
-    Button signBtn,logBtn;
+    Button signBtn,logBtn,logOutBtn,conBtn;
     TextView emailView,passView,messageView;
     String email,pass;
 
@@ -37,6 +40,11 @@ public class MainActivity extends AppCompatActivity {
         emailView = findViewById(R.id.emailView);
         passView = findViewById(R.id.passwordView);
         messageView = findViewById(R.id.messageView);
+        logOutBtn = findViewById(R.id.logOutBtn);
+        conBtn = findViewById(R.id.conBtn);
+
+        logOutBtn.setVisibility(View.INVISIBLE);
+        conBtn.setVisibility(View.INVISIBLE);
 
     }
 
@@ -52,66 +60,157 @@ public class MainActivity extends AppCompatActivity {
         email = emailView.getText().toString();
         pass = passView.getText().toString();
 
-        mAuth.createUserWithEmailAndPassword(email, pass)
-                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+        try {
+            if(email.isEmpty()){
+                emailView.setError("Please enter an email address");
+                emailView.requestFocus();
+            }
+            else if(!email.contains("@")||(!email.contains("."))||(email.length()<6))
+            {
+                emailView.setError("Email is badly formatted");
+                emailView.requestFocus();
+            }
+            else  if(pass.isEmpty()){
+                passView.setError("Please enter a password");
+                passView.requestFocus();
+            }
+            else if(pass.length()<6)
+            {
+                passView.setError("The length of the password must be at least 6 characters");
+                passView.requestFocus();
+            }
+            else {
+                mAuth.createUserWithEmailAndPassword(email, pass).addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
                             // Sign in success, update UI with the signed-in user's information
-                            Log.i("createUserWithEmail:","success");
+                            Log.i("createUserWithEmail:", "success");
                             FirebaseUser user = mAuth.getCurrentUser();
-                            messageView.setText(user.getEmail());
-                            Intent i = new Intent(MainActivity.this,ArticleListActivity.class);
-                            startActivity(i);
-
-                        } else {
-                            // If sign in fails, display a message to the user.
-                            Log.i("createUserWithEmail:", "failure");
-                            Log.i("Exception:",task.getException().toString());
-                            Toast.makeText(MainActivity.this, "Authentication failed.",
-                                    Toast.LENGTH_SHORT).show();
-                        }
-
-                    }
-                });
-    }
-
-    public void logInFunc(View v)
-    {
-        email = emailView.getText().toString();
-        pass = passView.getText().toString();
-        mAuth.signInWithEmailAndPassword(email, pass)
-                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()) {
-                            // Sign in success, update UI with the signed-in user's information
-                            Log.i("signInWithEmail:","success");
-                            FirebaseUser user = mAuth.getCurrentUser();
-                            messageView.setText(user.getEmail());
+                            logOutBtn.setVisibility(View.VISIBLE);
+                            conBtn.setVisibility(View.VISIBLE);
+                            logBtn.setVisibility(View.INVISIBLE);
+                            signBtn.setVisibility(View.INVISIBLE);
+                            emailView.setEnabled(false);
+                            passView.setEnabled(false);
+                            messageView.setText("Logged in as "+user.getEmail());
+                            messageView.setTextColor(Color.parseColor("#FF0A1563"));
+                            messageView.setVisibility(View.VISIBLE);
                             try {
-                                Intent i = new Intent(MainActivity.this,ArticleListActivity.class);
+                                Intent i = new Intent(MainActivity.this, ArticleListActivity.class);
                                 startActivity(i);
                             }
                             catch (Exception e)
                             {
                                 e.printStackTrace();
                             }
+
+
                         } else {
                             // If sign in fails, display a message to the user.
-                            Log.i("signInWithEmail:","failure");
-                            Log.i("Exception:",task.getException().toString());
-                            Toast.makeText(MainActivity.this, "Authentication failed.",
-                                    Toast.LENGTH_SHORT).show();
+                            Log.i("createUserWithEmail:", "failure");
+                            Log.i("Exception:", task.getException().toString());
+                            messageView.setText(task.getException().getMessage());
+                            messageView.setTextColor(Color.parseColor("#FFD5250A"));
                         }
+
                     }
                 });
+            }
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+    public void logInFunc(View v)
+    {
+        email = emailView.getText().toString();
+        pass = passView.getText().toString();
+        try {
+            if(email.isEmpty()){
+                emailView.setError("Please enter an email address");
+                emailView.requestFocus();
+            }
+            else if(!email.contains("@")||(!email.contains("."))||(email.length()<6))
+            {
+                emailView.setError("Email is badly formatted");
+                emailView.requestFocus();
+            }
+            else  if(pass.isEmpty()){
+                passView.setError("Please enter a password");
+                passView.requestFocus();
+            }
+            else if(pass.length()<6)
+            {
+                passView.setError("The length of the password must be at least 6 characters");
+                passView.requestFocus();
+            }
+            else {
+                mAuth.signInWithEmailAndPassword(email, pass)
+                        .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                            @Override
+                            public void onComplete(@NonNull Task<AuthResult> task) {
+                                if (task.isSuccessful()) {
+                                    // Sign in success, update UI with the signed-in user's information
+                                    Log.i("signInWithEmail:", "success");
+                                    FirebaseUser user = mAuth.getCurrentUser();
+                                    logOutBtn.setVisibility(View.VISIBLE);
+                                    conBtn.setVisibility(View.VISIBLE);
+                                    logBtn.setVisibility(View.INVISIBLE);
+                                    signBtn.setVisibility(View.INVISIBLE);
+                                    emailView.setEnabled(false);
+                                    passView.setEnabled(false);
+                                    messageView.setText("Logged in as "+user.getEmail());
+                                    messageView.setTextColor(Color.parseColor("#FF0A1563"));
+                                    messageView.setVisibility(View.VISIBLE);
+                                    try {
+                                        Intent i = new Intent(MainActivity.this, ArticleListActivity.class);
+                                        startActivity(i);
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
+                                } else {
+                                    // If sign in fails, display a message to the user.
+                                    Log.i("signInWithEmail:", "failure");
+                                    Log.i("Exception:", task.getException().toString());
+                                    messageView.setText(task.getException().getMessage());
+                                    messageView.setTextColor(Color.parseColor("#FFD5250A"));
+                                }
+                            }
+                        });
+            }
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
     }
 
     public void logOutFunc(View v)
     {
         FirebaseAuth.getInstance().signOut();
-        messageView.setText("no user");
+        logOutBtn.setVisibility(View.INVISIBLE);
+        conBtn.setVisibility(View.INVISIBLE);
+        logBtn.setVisibility(View.VISIBLE);
+        signBtn.setVisibility(View.VISIBLE);
+        messageView.setText("Log in or sign up to continue");
+        messageView.setTextColor(Color.parseColor("#FF0A1563"));
+        emailView.setText("");
+        passView.setText("");
+        emailView.setEnabled(true);
+        passView.setEnabled(true);
+    }
+
+    public void conFunc(View v)
+    {
+        try {
+            Intent i = new Intent(MainActivity.this, ArticleListActivity.class);
+            startActivity(i);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 }
