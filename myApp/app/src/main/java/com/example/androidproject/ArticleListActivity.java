@@ -28,20 +28,27 @@ public class ArticleListActivity extends AppCompatActivity {
     ArrayList<String> titles = new ArrayList<>();
     ArrayList<String> urls = new ArrayList<>();
     ArrayAdapter arrayAdapter;
+    CustomAdapter customAdapter;
     ListView listView;
     SQLiteDatabase articlesDB;
+    int img;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_article_list);
 
+        img = R.drawable.largbtn;
+
         articlesDB = this.openOrCreateDatabase("Articles", MODE_PRIVATE, null);
         articlesDB.execSQL("CREATE TABLE IF NOT EXISTS articles (id INTEGER PRIMARY KEY, articleId INTEGER, title VARCHAR, url VARCHAR)");
 
         listView = findViewById(R.id.arcitleList);
-        arrayAdapter = new ArrayAdapter(this,android.R.layout.simple_list_item_1,titles);
-        listView.setAdapter(arrayAdapter);
+       // arrayAdapter = new ArrayAdapter(this,android.R.layout.simple_list_item_1,titles);
+        //listView.setAdapter(arrayAdapter);
+        customAdapter = new CustomAdapter(this,titles,img);
+        listView.setAdapter(customAdapter);
+
 
         DownloadTask task = new DownloadTask();
         try {
@@ -84,7 +91,8 @@ public class ArticleListActivity extends AppCompatActivity {
             } while (c.moveToNext());
 
 
-            arrayAdapter.notifyDataSetChanged();
+            //arrayAdapter.notifyDataSetChanged();
+            customAdapter.notifyDataSetChanged();
         }
     }
 
